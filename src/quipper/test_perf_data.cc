@@ -180,7 +180,7 @@ void ExamplePerfFileAttr_Hardware::WriteTo(std::ostream* out) const {
   // Due to the unnamed union fields (eg, sample_period), this structure can't
   // be initialized with designated initializers.
   perf_event_attr attr = {0};
-  attr.type = MaybeSwap32(PERF_TYPE_HARDWARE);
+  attr.type = MaybeSwap32(type_);
   attr.size = MaybeSwap32(attr_size_);
   attr.config = MaybeSwap64(config_);
   attr.sample_period = MaybeSwap64(1);

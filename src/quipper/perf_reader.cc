@@ -858,7 +858,6 @@ bool PerfReader::ReadHeader(DataReader* data) {
     LOG(ERROR) << "Error reading header::adds_features.";
     return false;
   }
-  proto_->set_metadata_mask(0, header_.adds_features[0]);
 
   // Byte-swapping |adds_features| is tricky. It is defined as an array of
   // unsigned longs, which can vary between architectures. However, the overall
@@ -896,6 +895,9 @@ bool PerfReader::ReadHeader(DataReader* data) {
         ByteSwap(reinterpret_cast<uint32_t*>(header_.adds_features) + i);
     }
   }
+  // Use the feature bits only after they have been converted to the native
+  // byte order.
+  proto_->set_metadata_mask(0, header_.adds_features[0]);
 
   return true;
 }
@@ -961,10 +963,9 @@ bool PerfReader::ReadEventAttr(DataReader* data, perf_event_attr* attr) {
   }
 
   if (data->is_cross_endian()) {
+    // |type| and |size| were already swapped by ReadUint32() above.
     // Depending on attr->size, some of these might not have actually been
     // read. This is okay: they are zero.
-    ByteSwap(&attr->type);
-    ByteSwap(&attr->size);
     ByteSwap(&attr->config);
     ByteSwap(&attr->sample_period);
     ByteSwap(&attr->sample_type);

@@ -2325,8 +2325,11 @@ TEST(PerfReaderTest, CrossEndianAttrs) {
         .WithConfig(123)
         .WithCrossEndianness(is_cross_endian)
         .WriteTo(&input);
+    // Use a non-zero type for this one: PERF_TYPE_HARDWARE is 0, which reads
+    // the same in either byte order.
     testing::ExamplePerfFileAttr_Hardware(PERF_SAMPLE_IP | PERF_SAMPLE_TID,
                                           true /*sample_id_all*/)
+        .WithType(PERF_TYPE_SOFTWARE)
         .WithConfig(456)
         .WithCrossEndianness(is_cross_endian)
         .WriteTo(&input);
@@ -2348,6 +2351,7 @@ TEST(PerfReaderTest, CrossEndianAttrs) {
     EXPECT_EQ(3, pr.attrs().size());
 
     const auto& attr0 = pr.attrs().Get(0).attr();
+    EXPECT_EQ(PERF_TYPE_HARDWARE, attr0.type());
     EXPECT_EQ(123, attr0.config());
     EXPECT_EQ(1, attr0.sample_period());
     EXPECT_EQ(PERF_SAMPLE_IP | PERF_SAMPLE_TID, attr0.sample_type());
@@ -2355,6 +2359,7 @@ TEST(PerfReaderTest, CrossEndianAttrs) {
     EXPECT_EQ(2, attr0.precise_ip());
 
     const auto& attr1 = pr.attrs().Get(1).attr();
+    EXPECT_EQ(PERF_TYPE_SOFTWARE, attr1.type());
     EXPECT_EQ(456, attr1.config());
     EXPECT_EQ(1, attr1.sample_period());
     EXPECT_EQ(PERF_SAMPLE_IP | PERF_SAMPLE_TID, attr1.sample_type());
@@ -2552,6 +2557,11 @@ TEST(PerfReaderTest, CrossEndianNormalPerfData) {
     EXPECT_EQ(std::string(build_id.begin(), build_id.end()),
               buildId.build_id_hash());
   }
+
+  // Verify the cross-endian metadata.
+  const auto& string_metadata = pr.string_metadata();
+  EXPECT_EQ("hostname", string_metadata.hostname().value());
+  EXPECT_EQ("osrelease", string_metadata.kernel_version().value());
 }
 
 TEST(PerfReaderTest, MetadataMaskInitialized) {

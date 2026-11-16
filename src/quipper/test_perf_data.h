@@ -209,6 +209,7 @@ class ExamplePerfFileAttr_Hardware : public StreamWriteable {
   typedef ExamplePerfFileAttr_Hardware SelfT;
   explicit ExamplePerfFileAttr_Hardware(u64 sample_type, bool sample_id_all)
       : attr_size_(sizeof(perf_event_attr)),
+        type_(PERF_TYPE_HARDWARE),
         sample_type_(sample_type),
         sample_id_all_(sample_id_all),
         config_(0),
@@ -222,6 +223,10 @@ class ExamplePerfFileAttr_Hardware : public StreamWriteable {
         ksymbol_(false) {}
   SelfT& WithAttrSize(u32 size) {
     attr_size_ = size;
+    return *this;
+  }
+  SelfT& WithType(u32 type) {
+    type_ = type;
     return *this;
   }
   SelfT& WithConfig(u64 config) {
@@ -264,6 +269,7 @@ class ExamplePerfFileAttr_Hardware : public StreamWriteable {
 
  private:
   u32 attr_size_;
+  u32 type_;
   const u64 sample_type_;
   const bool sample_id_all_;
   u64 config_;
